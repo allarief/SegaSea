@@ -14,13 +14,13 @@ export default function Banner() {
       <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-6">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Welcome To SegaSea
+          SegaSea
         </h1>
         <p className="text-lg md:text-xl mb-6">
           Discover the Best Beach for You
         </p>
         <a
-          href="/explore"
+          href="/beach"
           className="bg-white text-cyan-600 font-semibold px-6 py-3 rounded-full hover:bg-green-100 transition"
         >
           Explore Now
