@@ -1,168 +1,114 @@
-'use client';
+"use client";
+
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import "leaflet/dist/leaflet.css";
-import Navbar from "../components/navbar";
-import L from "leaflet";
-import { useMap } from "react-leaflet";
 
-// Data pantai Bali
-const beaches = [
-  { name: "Kuta Beach", lat: -8.718, lng: 115.168 },
-  { name: "Pandawa Beach", lat: -8.8484, lng: 115.2250 },
-  { name: "Melasti Beach", lat: -8.8489, lng: 115.1650 },
-  { name: "Sanur Beach", lat: -8.690, lng: 115.261 },
-];
+export default function LocationPage() {
+  const beaches = [
+    {
+      name: "Pandawa Beach",
+      lat: -8.8487,
+      lng: 115.1863,
+      link: "https://maps.app.goo.gl/gpA9KZ64JqtETkKK8",
+      embed:
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126184.7515145612!2d115.12160874581983!3d-8.760319164826488!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd25b7cd8ba1f31%3A0x41b8785dd055b2a4!2sPandawa%20Beach!5e0!3m2!1sen!2sid!4v1756106823125!5m2!1sen!2sid",
+    },
+    {
+      name: "Melasti Beach",
+      lat: -8.8482,
+      lng: 115.1533,
+      link: "https://maps.app.goo.gl/iX5WWnWy2bNqpmfH8",
+      embed:
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15769.344195800302!2d115.15286996318517!3d-8.84827195687623!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd25be3c65bc987%3A0xfadb552ebfa90802!2sMelasti%20Beach!5e0!3m2!1sen!2sid!4v1756107070390!5m2!1sen!2sid",
+    },
+    {
+      name: "Kuta Beach",
+      lat: -8.7186,
+      lng: 115.1686,
+      link: "https://maps.app.goo.gl/JnfbhZwWuA5JkqgJ9",
+      embed:
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7887.441994273833!2d115.16288469514151!3d-8.718021910419804!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd246bc2ab70d43%3A0x82feaae12f4ab48e!2sKuta%20Beach!5e0!3m2!1sen!2sid!4v1756107167813!5m2!1sen!2sid",
+    },
+  ];
 
+  const [nearestBeach, setNearestBeach] = useState(null);
 
-// Hitung jarak antar koordinat (haversine)
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-  const R = 6371; // radius bumi (km)
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-// Dynamic import react-leaflet agar jalan di Next.js
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false }
-);
-
-// Custom icon user (ambil dari /public/Leaflet)
-const userIcon = new L.Icon({
-  iconUrl: "/Leaflet/marker-icon.png",
-  iconRetinaUrl: "/Leaflet/marker-icon-2x.png",
-  shadowUrl: "/Leaflet/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-// Icon pantai (warna berbeda biar tidak sama dengan user)
-const beachIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png", // icon pantai gratis
-  iconSize: [30, 30],
-  iconAnchor: [15, 30],
-  popupAnchor: [0, -28],
-});
-
-// Komponen untuk auto fly ke user
-function FlyToUser({ position }) {
-  const map = useMap();
+  // fungsi hitung jarak (haversine)
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
 
   useEffect(() => {
-    if (position) {
-      map.flyTo(position, 15, { duration: 1.5 });
-    }
-  }, [position, map]);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const { latitude, longitude } = pos.coords;
 
-  return null;
-}
+        let nearest = beaches[0];
+        let minDist = getDistance(latitude, longitude, nearest.lat, nearest.lng);
 
-export default function Dashboard() {
-  const [position, setPosition] = useState(null);
-  const [nearestBeaches, setNearestBeaches] = useState([]);
-  const [geoError, setGeoError] = useState("");
+        beaches.forEach((beach) => {
+          const dist = getDistance(latitude, longitude, beach.lat, beach.lng);
+          if (dist < minDist) {
+            nearest = beach;
+            minDist = dist;
+          }
+        });
 
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      const watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          const newPos = [latitude, longitude];
-          setPosition(newPos);
-
-          const beachesWithDistance = beaches.map((b) => ({
-            ...b,
-            distance: getDistanceFromLatLonInKm(latitude, longitude, b.lat, b.lng),
-          }));
-
-          beachesWithDistance.sort((a, b) => a.distance - b.distance);
-          setNearestBeaches(beachesWithDistance);
-        },
-        (err) => {
-          console.error(err);
-          setGeoError(
-            "Tidak bisa mendapatkan lokasi kamu. Pastikan izin lokasi aktif dan menggunakan HTTPS/localhost."
-          );
-        },
-        { enableHighAccuracy: true }
-      );
-
-      return () => navigator.geolocation.clearWatch(watchId);
-    } else {
-      setGeoError("Geolocation tidak didukung di browser ini.");
+        setNearestBeach(nearest);
+      });
     }
   }, []);
 
-  const defaultCenter = [-8.718, 115.168]; // default ke Kuta
-
   return (
-    <div>
-
-      {geoError && <p className="text-red-600 mb-2">{geoError}</p>}
-
-      <div style={{ height: "500px", width: "100%" }}>
-        <MapContainer
-          center={position || defaultCenter}
-          zoom={12}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-          />
-
-          {position && <FlyToUser position={position} />}
-
-          {position && (
-            <Marker position={position} icon={userIcon}>
-              <Popup>Lokasi Kamu (real-time)</Popup>
-            </Marker>
-          )}
-
-          {nearestBeaches.map((beach, idx) => (
-            <Marker key={idx} position={[beach.lat, beach.lng]} icon={beachIcon}>
-              <Popup>
-                {beach.name} - {beach.distance.toFixed(2)} km
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+    <div className="w-full min-h-screen flex flex-col">
+      {/* Embed maps */}
+      <div className="w-full h-[500px]">
+        {nearestBeach ? (
+          <iframe
+            src={nearestBeach.embed}
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allowFullScreen
+            loading="lazy"
+          ></iframe>
+        ) : (
+          <p className="p-4">📍 Menentukan lokasi kamu...</p>
+        )}
       </div>
 
-      <h2 className="text-xl font-semibold mt-4">Pantai terdekat:</h2>
-      {nearestBeaches.length > 0 ? (
-        <ul className="list-disc ml-6 mt-2">
-          {nearestBeaches.map((b, idx) => (
-            <li key={idx}>
-              {b.name} - {b.distance.toFixed(2)} km
+      <div className="p-6">
+        {nearestBeach && (
+          <div className="mb-6 p-4 bg-blue-100 rounded-lg">
+            🌊 Pantai terdekat kamu adalah{" "}
+            <span className="font-bold">{nearestBeach.name}</span>
+          </div>
+        )}
+
+        <h2 className="text-xl font-bold mb-4">Daftar Pantai</h2>
+        <ul className="space-y-3">
+          {beaches.map((beach, index) => (
+            <li key={index}>
+              <a
+                href={beach.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                📍 {beach.name}
+              </a>
             </li>
           ))}
         </ul>
-      ) : (
-        <p>Menunggu lokasi...</p>
-      )}
+      </div>
     </div>
   );
 }
