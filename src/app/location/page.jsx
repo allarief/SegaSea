@@ -47,8 +47,9 @@ export default function LocationPage() {
   }
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
         const { latitude, longitude } = pos.coords;
 
         let nearest = beaches[0];
@@ -63,9 +64,23 @@ export default function LocationPage() {
         });
 
         setNearestBeach(nearest);
-      });
-    }
-  }, []);
+      },
+      (error) => {
+        console.error("Geolocation error:", error.message);
+        // kalau gagal, kasih info ke user
+        alert("⚠️ Tidak bisa menentukan lokasi. Aktifkan GPS dan izinkan akses lokasi.");
+      },
+      {
+        enableHighAccuracy: true, // lebih akurat (pakai GPS kalau ada)
+        timeout: 10000,           // maksimal nunggu 10 detik
+        maximumAge: 0             // jangan pakai cache lokasi lama
+      }
+    );
+  } else {
+    alert("Browser kamu tidak mendukung geolocation.");
+  }
+}, []);
+
 
   return (
     <div className="w-full min-h-screen flex flex-col">
