@@ -29,7 +29,7 @@ export default function BeachListPage() {
     {
       id: 5,
       name: "Peninsula Beach",
-      description: "Pantai dengan tebing tinggi dan pasir putih bersih.",
+      description: "Pantai dengan suasana tenang dan pemandangan menakjubkan.",
       image: "peninsula.jpg"
     }
   ];
